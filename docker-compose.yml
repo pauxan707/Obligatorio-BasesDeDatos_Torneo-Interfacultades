@@ -1,0 +1,28 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d   # corre los .sql al crear la base
+      - db_data:/var/lib/mysql             # guarda los datos
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      retries: 20
+
+  app:
+    build: ./app
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db          # el nombre del servicio, no localhost
+      DB_NAME: torneo_f5
+    depends_on:
+      db:
+        condition: service_healthy   # la app espera a que MySQL esté lista
+
+volumes:
+  db_data:
