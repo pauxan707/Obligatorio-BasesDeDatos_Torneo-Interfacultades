@@ -38,9 +38,8 @@ En la app de Docker se debe poder observar algo de esta manera
 
 
 ## Usuarios
-| Usuario | Permisos |
-|---|---|
-| `admin_app` | Lectura y escritura sobre todo el torneo |
-| `planillero_app` | Solo registra planillas, goles y tarjetas (el resto es lectura) |
-| `login_app` | Solo lee la tabla `login` |
-
+| Usuario | Permisos | Contraseña |
+|---|---|---|
+| `admin_app` | Lectura y escritura sobre todo el torneo | `Admin` |
+| `planillero_app` | Solo registra planillas, goles y tarjetas (el resto es lectura) | `Planillero` |
+| `login_app` | Solo lee la tabla `login` | `Login` |
