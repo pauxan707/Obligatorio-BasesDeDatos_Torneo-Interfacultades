@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Reportes</h1>
+<p class="sub">
+  9 reportes pedidos por el enunciado + 3 propuestos por el equipo.
+  Todos se resuelven con consultas SQL sobre <b>vistas</b> de la base de datos
+  (<code>db/03_views.sql</code>), con JOIN y GROUP BY.
+</p>
+
+<h2>Del enunciado</h2>
+<div class="rejilla">
+  {% for nombre, r in reportes.items() if r.origen == 'enunciado' %}
+  <div class="panel">
+    <h2 style="margin-top:0">{{ r.titulo }}</h2>
+    <p class="sub" style="margin-bottom:10px">{{ r.nota }}</p>
+    <div class="acciones" style="margin-bottom:0">
+      <a class="btn" href="{{ url_for('reporte', nombre=nombre) }}">Ver reporte</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<h2>Propuestos por el equipo</h2>
+<div class="rejilla">
+  {% for nombre, r in reportes.items() if r.origen == 'extra' %}
+  <div class="panel">
+    <h2 style="margin-top:0">
+      {{ r.titulo }} <span class="etiqueta rol">extra</span>
+    </h2>
+    <p class="sub" style="margin-bottom:10px">{{ r.nota }}</p>
+    <div class="acciones" style="margin-bottom:0">
+      <a class="btn" href="{{ url_for('reporte', nombre=nombre) }}">Ver reporte</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

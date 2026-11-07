@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block titulo %}Sanciones · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Sanciones</h1>
+<p class="sub">{{ filas|length }} sanción(es)</p>
+
+<form method="get" class="filtros">
+  <div>
+    <label for="torneo">Edición</label>
+    <select id="torneo" name="torneo" onchange="this.form.submit()">
+      <option value="">Todas</option>
+      {% for t in torneos %}
+      <option value="{{ t.id_torneo }}" {% if torneo == t.id_torneo|string %}selected{% endif %}>
+        {{ t.nombre }} · {{ t.estado }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <a class="btn secundario" href="{{ url_for('sanciones') }}">Limpiar</a>
+  {% if es_admin %}
+  <a class="btn" href="{{ url_for('sancion_nueva') }}">+ Nueva sanción</a>
+  {% endif %}
+</form>
+
+{% if filas %}
+<table>
+  <thead>
+    <tr>
+      <th>Jugador</th><th>Facultad</th><th>Edición</th><th>Motivo</th>
+      <th class="num">Desde la fecha</th><th class="num">Fechas</th>
+      <th>Origen</th>{% if es_admin %}<th></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in filas %}
+    <tr>
+      <td><b>{{ s.jugador }}</b></td>
+      <td>{{ s.facultad }}</td>
+      <td>{{ s.edicion }}</td>
+      <td>{{ s.motivo }}</td>
+      <td class="num">{{ s.numero_fecha_inicio }}</td>
+      <td class="num">{{ s.cantidad_fechas }}</td>
+      <td>
+        {% if s.id_tarjeta %}
+          <span class="etiqueta roja">automática</span>
+        {% else %}
+          <span class="etiqueta rol">manual</span>
+        {% endif %}
+      </td>
+      {% if es_admin %}
+      <td>
+        {% if not s.id_tarjeta %}
+        <form method="post"
+              action="{{ url_for('sancion_borrar', id_sancion=s.id_sancion) }}"
+              onsubmit="return confirm('¿Eliminar esta sanción?')">
+          <button type="submit" class="btn peligro chico">Borrar</button>
+        </form>
+        {% else %}
+        <span style="font-size:12px;color:#7b8798">
+          generada por una tarjeta: se quita borrando la tarjeta
+        </span>
+        {% endif %}
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="nota">
+  <b>Cómo se generan</b><br>
+  · La <b>roja</b> suspende al jugador para la fecha siguiente, automáticamente.<br>
+  · La <b>tercera amarilla</b> exacta de la edición también suspende 1 fecha.<br>
+  · Las sanciones <b>disciplinarias</b> las carga un administrador y no tienen
+  tarjeta asociada (el campo <code>id_tarjeta</code> queda en NULL).
+</div>
+{% else %}
+<div class="vacia">
+  No hay sanciones para ese filtro.
+  {% if es_admin %}<br><a href="{{ url_for('sancion_nueva') }}">Cargar una sanción →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

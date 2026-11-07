@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar jugador' if jugador and request.endpoint == 'jugador_editar' else 'Nuevo jugador' }} · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>{{ 'Editar jugador' if jugador and request.endpoint == 'jugador_editar' else 'Nuevo jugador' }}</h1>
+<p class="sub">Los campos marcados con * son obligatorios.</p>
+
+{% if errores %}
+<ul class="errores">
+  {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+
+{% if jugador and request.endpoint == 'jugador_editar' %}
+  {% set accion = url_for('jugador_guardar', ci=jugador.ci) %}
+{% else %}
+  {% set accion = url_for('jugador_crear') %}
+{% endif %}
+
+<form method="post" action="{{ accion }}" class="formulario dos"
+      novalidate data-validar-jugador>
+  <div class="campo">
+    <label for="ci">Cédula *</label>
+    <input type="text" id="ci" name="ci" required pattern="\d{7,8}" maxlength="8"
+           inputmode="numeric" placeholder="7 u 8 dígitos"
+           value="{{ jugador.ci if jugador and jugador.ci else '' }}"
+           {% if request.endpoint == 'jugador_editar' %}readonly{% endif %}>
+    <small>Solo dígitos, sin puntos ni guiones.</small>
+  </div>
+  <div class="campo">
+    <label for="nombre">Nombre *</label>
+    <input type="text" id="nombre" name="nombre" required minlength="2" maxlength="50"
+           pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' ]{2,50}"
+           value="{{ jugador.nombre if jugador and jugador.nombre else '' }}">
+  </div>
+  <div class="campo">
+    <label for="apellido">Apellido *</label>
+    <input type="text" id="apellido" name="apellido" required minlength="2" maxlength="50"
+           pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' ]{2,50}"
+           value="{{ jugador.apellido if jugador and jugador.apellido else '' }}">
+  </div>
+  <div class="campo">
+    <label for="email">Email *</label>
+    <input type="email" id="email" name="email" required maxlength="100"
+           pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+           value="{{ jugador.email if jugador and jugador.email else '' }}">
+  </div>
+  <div class="campo">
+    <label for="fecha_nacimiento">Fecha de nacimiento *</label>
+    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required
+           max="{{ 'today' }}"
+           value="{{ jugador.fecha_nacimiento if jugador and jugador.fecha_nacimiento else '' }}">
+    <small>No puede ser una fecha futura.</small>
+  </div>
+  <div class="campo">
+    <label for="id_facultad">Facultad *</label>
+    <select id="id_facultad" name="id_facultad" required>
+      <option value="">Elegir…</option>
+      {% for f in facultades %}
+      <option value="{{ f.id_facultad }}"
+        {% if jugador and jugador.id_facultad == f.id_facultad %}selected{% endif %}>
+        {{ f.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <label for="tipo">Tipo *</label>
+    <select id="tipo" name="tipo" required>
+      {% for t in ['grado', 'posgrado', 'docente', 'funcionario'] %}
+      <option value="{{ t }}" {% if jugador and jugador.tipo == t %}selected{% endif %}>
+        {{ t }}</option>
+      {% endfor %}
+    </select>
+    <small>Docentes y funcionarios: máximo 2 por plantel.</small>
+  </div>
+
+  <div class="acciones" style="grid-column:1/-1">
+    <button type="submit">Guardar</button>
+    <a class="btn secundario" href="{{ url_for('jugadores') }}">Cancelar</a>
+  </div>
+</form>
+
+<script>
+  // Validación frontend, si algún campo no cumple su pattern, avisa antes de mandar el formulario
+  (function () {
+    var form = document.querySelector('[data-validar-jugador]');
+    if (!form) return;
+    form.addEventListener('submit', function (ev) {
+      if (!form.checkValidity()) {
+        ev.preventDefault();
+        form.reportValidity();
+      }
+    });
+  })();
+</script>
+{% endblock %}

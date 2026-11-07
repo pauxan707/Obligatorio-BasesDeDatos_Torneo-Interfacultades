@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Error · Torneo F5{% endblock %}
+
+{% block contenido %}
+<div class="panel centrado">
+  <h1>No se pudo completar la operación</h1>
+  <p class="sub">{{ mensaje }}</p>
+  <p>
+    <a class="btn secundario" href="{{ url_for('index') }}">Volver al inicio</a>
+    <a class="btn secundario" href="javascript:history.back()">Volver atrás</a>
+  </p>
+</div>
+{% endblock %}

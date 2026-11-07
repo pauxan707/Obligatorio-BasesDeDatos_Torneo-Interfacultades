@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block titulo %}Nueva sanción · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Nueva sanción disciplinaria</h1>
+<p class="sub">
+  Esta sanción es <b>manual</b>: no nace de una tarjeta, así que
+  <code>id_tarjeta</code> queda en NULL y el motivo es obligariamente
+  <b>disciplinaria</b>.
+</p>
+
+{% if errores %}
+<ul class="errores">
+  {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<form method="post" action="{{ url_for('sancion_crear') }}" class="formulario" novalidate>
+  <div class="campo">
+    <label for="ci_jugador">Jugador *</label>
+    <select id="ci_jugador" name="ci_jugador" required>
+      <option value="">Elegir…</option>
+      {% for j in jugadores %}
+      <option value="{{ j.ci }}">{{ j.etiqueta }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="id_torneo">Edición *</label>
+    <select id="id_torneo" name="id_torneo" required>
+      <option value="">Elegir…</option>
+      {% for t in torneos %}
+      <option value="{{ t.id_torneo }}">{{ t.nombre }} · {{ t.estado }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="motivo">Motivo *</label>
+    <select id="motivo" name="motivo" required>
+      <option value="disciplinaria">disciplinaria</option>
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="numero_fecha_inicio">Fecha en que empieza *</label>
+    <input type="number" id="numero_fecha_inicio" name="numero_fecha_inicio"
+           required min="1" max="99" placeholder="5">
+  </div>
+
+  <div class="campo">
+    <label for="cantidad_fechas">Cantidad de fechas *</label>
+    <input type="number" id="cantidad_fechas" name="cantidad_fechas"
+           required min="1" max="99" placeholder="1">
+    <small>La suspensión se cumple en las fechas consecutivas a partir de la inicial.</small>
+  </div>
+
+  <div class="acciones">
+    <button type="submit">Guardar sanción</button>
+    <a class="btn secundario" href="{{ url_for('sanciones') }}">Cancelar</a>
+  </div>
+</form>
+
+<div class="nota">
+  Las sanciones automáticas (roja o tercera amarilla) <b>no</b> se cargan acá:
+  las genera el sistema al registrar la tarjeta en el partido correspondiente.
+</div>
+{% endblock %}

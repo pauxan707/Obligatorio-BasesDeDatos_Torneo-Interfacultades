@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block titulo %}Equipos · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Equipos y planteles</h1>
+<p class="sub">{{ filas|length }} equipo(s)</p>
+
+<form method="get" class="filtros">
+  <div>
+    <label for="torneo">Edición</label>
+    <select id="torneo" name="torneo" onchange="this.form.submit()">
+      <option value="">Todas</option>
+      {% for t in torneos %}
+      <option value="{{ t.id_torneo }}" {% if torneo == t.id_torneo|string %}selected{% endif %}>
+        {{ t.nombre }} · {{ t.estado }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <a class="btn secundario" href="{{ url_for('equipos') }}">Limpiar</a>
+  {% if es_admin %}
+  <a class="btn" href="{{ url_for('equipo_nuevo') }}">+ Nuevo equipo</a>
+  {% endif %}
+</form>
+
+{% if filas %}
+<table>
+  <thead>
+    <tr>
+      <th>Equipo</th><th>Facultad</th><th>Edición</th><th>Estado</th>
+      <th>Capitán</th><th class="num">Plantel</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in filas %}
+    <tr>
+      <td><b>{{ e.nombre }}</b></td>
+      <td>{{ e.facultad }}</td>
+      <td>{{ e.edicion }}</td>
+      <td><span class="etiqueta {{ e.estado }}">{{ e.estado }}</span></td>
+      <td>{{ e.capitan if e.capitan else '— sin asignar —' }}</td>
+      <td class="num">{{ e.plantel }} / 10</td>
+      <td><a class="btn secundario chico" href="{{ url_for('equipo_detalle', id_equipo=e.id_equipo) }}">Ver plantel</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">No hay equipos para esa edición.</div>
+{% endif %}
+{% endblock %}

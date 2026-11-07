@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar partido' if partido and partido.id_partido is defined else 'Programar partido' }} · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>{{ 'Editar partido' if partido and partido.id_partido is defined else 'Programar partido' }}</h1>
+<p class="sub">
+  Liga a una sola rueda: cada equipo se enfrenta una única vez con cada rival
+  y no juega más de un partido por fecha.
+</p>
+
+{% if errores %}
+<ul class="errores">
+  {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+{% set edicion = partido and partido.id_partido is defined %}
+
+<form method="post"
+      action="{{ url_for('partido_guardar', id_partido=partido.id_partido) if edicion else url_for('partido_crear') }}"
+      class="formulario dos" novalidate id="form-partido">
+
+  {% if edicion %}
+    <input type="hidden" name="id_torneo" value="{{ partido.id_torneo }}">
+  {% else %}
+  <div class="campo">
+    <label for="id_torneo">Edición *</label>
+    <select id="id_torneo" name="id_torneo" required onchange="filtrarEquipos()">
+      <option value="">Elegir…</option>
+      {% for t in torneos %}
+      <option value="{{ t.id_torneo }}"
+        {% if torneo == t.id_torneo|string %}selected{% endif %}>
+        {{ t.nombre }} · {{ t.estado }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  <div class="campo">
+    <label for="numero_fecha">Fecha del torneo *</label>
+    <input type="number" id="numero_fecha" name="numero_fecha" required min="1" max="99"
+           value="{{ partido.numero_fecha if partido.numero_fecha else '' }}">
+    <small>Número de fecha dentro de la edición.</small>
+  </div>
+
+  <div class="campo">
+    <label for="id_equipo_local">Equipo local *</label>
+    <select id="id_equipo_local" name="id_equipo_local" required>
+      <option value="">Elegir…</option>
+      {% for e in equipos %}
+      <option value="{{ e.id_equipo }}" data-torneo="{{ e.id_torneo }}"
+        {% if partido and partido.id_equipo_local == e.id_equipo|string %}selected{% endif %}>
+        {{ e.nombre }} ({{ e.facultad }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="id_equipo_visitante">Equipo visitante *</label>
+    <select id="id_equipo_visitante" name="id_equipo_visitante" required>
+      <option value="">Elegir…</option>
+      {% for e in equipos %}
+      <option value="{{ e.id_equipo }}" data-torneo="{{ e.id_torneo }}"
+        {% if partido and partido.id_equipo_visitante == e.id_equipo|string %}selected{% endif %}>
+        {{ e.nombre }} ({{ e.facultad }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="dia">Día *</label>
+    <input type="date" id="dia" name="dia" required
+           value="{{ partido.dia if partido.dia else '' }}">
+  </div>
+
+  <div class="campo">
+    <label for="id_turno">Turno *</label>
+    <select id="id_turno" name="id_turno" required>
+      <option value="">Elegir…</option>
+      {% for t in turnos %}
+      <option value="{{ t.id_turno }}"
+        {% if partido and partido.id_turno == t.id_turno|string %}selected{% endif %}>
+        Turno {{ t.id_turno }} · {{ t.hora_inicio }} a {{ t.hora_fin }}</option>
+      {% endfor %}
+    </select>
+    <small>Entre las 18:00 y las 23:00.</small>
+  </div>
+
+  <div class="campo">
+    <label for="id_complejo">Complejo *</label>
+    <select id="id_complejo" name="id_complejo" required onchange="filtrarCanchas()">
+      <option value="">Elegir…</option>
+      {% for c in complejos %}
+      <option value="{{ c.id_complejo }}"
+        {% if partido and partido.id_complejo == c.id_complejo|string %}selected{% endif %}>
+        {{ c.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="campo">
+    <label for="nombre_cancha">Cancha *</label>
+    <select id="nombre_cancha" name="nombre_cancha" required>
+      <option value="">Elegir…</option>
+      {% for k in canchas %}
+      <option value="{{ k.nombre_cancha }}" data-complejo="{{ k.id_complejo }}"
+        {% if partido and partido.nombre_cancha == k.nombre_cancha %}selected{% endif %}>
+        {{ k.nombre_cancha }} · {{ k.complejo }}</option>
+      {% endfor %}
+    </select>
+    <small>Una cancha no admite más de un partido el mismo día y turno.</small>
+  </div>
+
+  <div class="campo">
+    <label for="estado">Estado *</label>
+    <select id="estado" name="estado" required>
+      {% for s in ['programado', 'jugado', 'postergado', 'cancelado'] %}
+      <option value="{{ s }}" {% if partido and partido.estado == s %}selected{% endif %}>
+        {{ s }}</option>
+      {% endfor %}
+    </select>
+    <small>Solo se marca "jugado" si el día y el turno ya pasaron.</small>
+  </div>
+
+  <div class="acciones" style="grid-template-columns:1/-1">
+    <button type="submit">Guardar</button>
+    <a class="btn secundario" href="{{ url_for('partidos') }}">Cancelar</a>
+  </div>
+</form>
+
+<script>
+  function ocultar(select, atributo, valor) {
+    if (!select) return;
+    Array.prototype.forEach.call(select.options, function (o) {
+      if (!o.value) return;
+      var igual = o.getAttribute(atributo) === String(valor);
+      o.hidden = !igual;
+      o.disabled = !igual;
+    });
+    var actual = select.selectedOptions[0];
+    if (actual && actual.disabled) select.value = '';
+  }
+
+  function filtrarEquipos() {
+    var torneo = (document.getElementById('id_torneo') || {}).value;
+    if (!torneo) return;
+    ocultar(document.getElementById('id_equipo_local'), 'data-torneo', torneo);
+    ocultar(document.getElementById('id_equipo_visitante'), 'data-torneo', torneo);
+  }
+
+  function filtrarCanchas() {
+    var complejo = (document.getElementById('id_complejo') || {}).value;
+    if (!complejo) return;
+    ocultar(document.getElementById('nombre_cancha'), 'data-complejo', complejo);
+  }
+
+  filtrarEquipos();
+  filtrarCanchas();
+
+  //  Validacion de frontend, un equipo no puede jugar contra sí mismo.
+  document.getElementById('form-partido').addEventListener('submit', function (ev) {
+    var l = document.getElementById('id_equipo_local').value;
+    var v = document.getElementById('id_equipo_visitante').value;
+    if (l && l === v) {
+      ev.preventDefault();
+      alert('Un equipo no puede jugar contra sí mismo.');
+      document.getElementById('id_equipo_visitante').focus();
+    }
+  });
+</script>
+{% endblock %}

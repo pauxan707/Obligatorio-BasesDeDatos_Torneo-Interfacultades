@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block titulo %}{{ partido.local }} vs {{ partido.visitante }} · Torneo F5{% endblock %}
+
+{% block contenido %}
+<div class="acciones">
+  <a class="btn secundario" href="{{ url_for('partidos', torneo=partido.id_torneo) }}">← Partidos</a>
+  {% if es_admin and partido.estado != 'jugado' %}
+  <a class="btn secundario" href="{{ url_for('partido_editar', id_partido=partido.id_partido) }}">Modificar partido</a>
+  {% endif %}
+</div>
+
+<h1>{{ partido.local }} <span style="color:#7b8798;font-weight:400">vs</span> {{ partido.visitante }}</h1>
+<p class="sub">
+  {{ partido.edicion }} · Fecha <b>{{ partido.numero_fecha }}</b> · {{ partido.dia }} ·
+  {{ partido.turno }} · {{ partido.nombre_cancha }} ({{ partido.complejo }}) ·
+  <span class="etiqueta {{ partido.estado }}">{{ partido.estado }}</span>
+</p>
+
+
+<div class="panel" style="text-align:center">
+  {% if resultado %}
+    <div style="font-size:46px;font-weight:700;letter-spacing:3px;line-height:1.1">
+      {{ resultado.goles_local }} <span style="color:#7b8798">—</span> {{ resultado.goles_visitante }}
+    </div>
+    <div class="sub" style="margin-bottom:0">{{ partido.local }} · {{ partido.visitante }}</div>
+  {% else %}
+    <div style="font-size:30px;color:#7b8798">Sin resultado cargado</div>
+    <div class="sub" style="margin-bottom:0">
+      {% if partido.estado == 'jugado' %}
+        Todavía no se registraron goles en este partido.
+      {% else %}
+        El resultado se calcula de los goles registrados cuando el partido está en estado <b>jugado</b>.
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+{% if resultado %}
+<div class="nota">
+  El resultado no se guarda en la tabla <code>partido</code>: se calcula a partir de
+  los goles registrados, igual que lo hace la vista <code>v_resultado_partido</code>.
+  Un autogol se anota en contra del que lo metió.
+</div>
+{% endif %}
+
+
+{% if es_admin and partido.estado != 'jugado' %}
+<div class="panel">
+  <h2 style="margin-top:0">Cambiar estado</h2>
+  <div class="acciones">
+    {% for s in ['jugado', 'programado', 'postergado', 'cancelado'] if s != partido.estado %}
+    <form method="post" action="{{ url_for('partido_estado', id_partido=partido.id_partido) }}"
+          onsubmit="return confirm('¿Pasar este partido a «{{ s }}»?')">
+      <input type="hidden" name="estado" value="{{ s }}">
+      <button type="submit"
+              class="btn chico {{ 'peligro' if s == 'cancelado' else ('' if s == 'jugado' else 'secundario') }}">{{ s }}</button>
+    </form>
+    {% endfor %}
+  </div>
+  <p class="sub" style="margin:0;font-size:13px">
+    <b>jugado</b> solo se permite si el día y el turno ya pasaron ·
+    un partido <b>cancelado</b> libera la cancha y el turno ·
+    una vez <b>jugado</b> el partido queda congelado y no se puede borrar ni reprogramar.
+  </p>
+</div>
+{% endif %}
+
+
+<div class="acciones">
+  <a class="btn" href="{{ url_for('planilla_form', id_partido=partido.id_partido) }}">
+    {{ 'Editar planilla de juego' if planilla else 'Cargar planilla de juego' }}
+  </a>
+  {% if es_admin %}
+  <form method="post" action="{{ url_for('partido_borrar', id_partido=partido.id_partido) }}"
+        onsubmit="return confirm('¿Eliminar este partido?{% if partido.estado == 'jugado' %} (recordá que un partido jugado no se puede eliminar){% endif %}')">
+    <button type="submit" class="btn peligro">Eliminar partido</button>
+  </form>
+  {% endif %}
+</div>
+
+<h2>Planilla de juego <small style="color:#7b8798">({{ planilla|length }} jugador/es)</small></h2>
+{% if planilla %}
+<table>
+  <thead>
+    <tr><th>Jugador</th><th>Equipo</th><th class="num">Goles</th><th class="num">Tarjetas</th></tr>
+  </thead>
+  <tbody>
+    {% for p in planilla %}
+    <tr>
+      <td><b>{{ p.jugador }}</b></td>
+      <td>{{ p.equipo }}</td>
+      <td class="num">{{ p.goles }}</td>
+      <td class="num">{{ p.tarjetas }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">
+  Todavía no se cargó la planilla.
+  {% if partido.estado != 'jugado' %}
+  Se puede cargar una vez que el partido pase a estado <b>jugado</b>.
+  {% else %}
+  <br><a href="{{ url_for('planilla_form', id_partido=partido.id_partido) }}">Cargar ahora →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% set pendientes = planilla | map(attribute='ci_jugador') | list %}
+
+
+<h2>Goles</h2>
+{% if partido.estado == 'jugado' and planilla %}
+<form method="post" action="{{ url_for('gol_crear', id_partido=partido.id_partido) }}"
+      class="fila-inline" style="margin-bottom:12px">
+  <select name="ci_jugador" required aria-label="Jugador">
+    <option value="">Jugador…</option>
+    {% for p in planilla %}
+    <option value="{{ p.ci_jugador }}">{{ p.jugador }} · {{ p.equipo }}</option>
+    {% endfor %}
+  </select>
+  <input type="number" name="minuto" required min="1" max="60" placeholder="Minuto" style="width:105px">
+  <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;white-space:nowrap">
+    <input type="checkbox" name="autogol" value="1" style="width:auto"> Autogol
+  </label>
+  <button type="submit">Agregar gol</button>
+</form>
+{% elif partido.estado != 'jugado' %}
+<p class="sub">Los goles se registran una vez disputado el partido.</p>
+{% endif %}
+
+{% if goles %}
+<table>
+  <thead>
+    <tr><th class="num">Minuto</th><th>Jugador</th><th>Equipo</th><th>Tipo</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for g in goles %}
+    <tr>
+      <td class="num">{{ g.minuto }}'</td>
+      <td>{{ g.jugador }}</td>
+      <td>{{ g.equipo }}</td>
+      <td>{{ '<span class="etiqueta roja">autogol</span>'|safe if g.autogol else '<span class="etiqueta jugado">a favor</span>'|safe }}</td>
+      <td>
+        <form method="post"
+              action="{{ url_for('gol_borrar', id_partido=partido.id_partido, id_gol=g.id_gol) }}"
+              onsubmit="return confirm('¿Eliminar este gol?')">
+          <button type="submit" class="btn peligro chico">Borrar</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">Sin goles registrados.</div>
+{% endif %}
+
+
+<h2>Tarjetas</h2>
+{% if partido.estado == 'jugado' and planilla %}
+<form method="post" action="{{ url_for('tarjeta_crear', id_partido=partido.id_partido) }}"
+      class="fila-inline" style="margin-bottom:12px">
+  <select name="ci_jugador" required aria-label="Jugador">
+    <option value="">Jugador…</option>
+    {% for p in planilla %}
+    <option value="{{ p.ci_jugador }}">{{ p.jugador }} · {{ p.equipo }}</option>
+    {% endfor %}
+  </select>
+  <input type="number" name="minuto" required min="1" max="60" placeholder="Minuto" style="width:105px">
+  <select name="color" required aria-label="Color">
+    <option value="amarilla">amarilla</option>
+    <option value="roja">roja</option>
+  </select>
+  <button type="submit">Agregar tarjeta</button>
+</form>
+<p class="sub" style="font-size:13px">
+  La <b>roja</b> suspende 1 fecha. La <b>tercera amarilla</b> de la edición también
+  suspende 1 fecha. En ambos casos la suspensión se cumple en la fecha siguiente.
+</p>
+{% elif partido.estado != 'jugado' %}
+<p class="sub">Las tarjetas se registran una vez disputado el partido.</p>
+{% endif %}
+
+{% if tarjetas %}
+<table>
+  <thead>
+    <tr><th class="num">Minuto</th><th>Jugador</th><th>Equipo</th><th>Tarjeta</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for t in tarjetas %}
+    <tr>
+      <td class="num">{{ t.minuto }}'</td>
+      <td>{{ t.jugador }}</td>
+      <td>{{ t.equipo }}</td>
+      <td><span class="etiqueta {{ t.color }}">{{ t.color }}</span></td>
+      <td>
+        <form method="post"
+              action="{{ url_for('tarjeta_borrar', id_partido=partido.id_partido, id_tarjeta=t.id_tarjeta) }}"
+              onsubmit="return confirm('¿Eliminar esta tarjeta? Si generó una sanción, la sanción también se cae.')">
+          <button type="submit" class="btn peligro chico">Borrar</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">Sin tarjetas registradas.</div>
+{% endif %}
+
+
+<h2>Sanciones vigentes de esta edición</h2>
+{% set susp = [] %}
+{% for s in sanciones if s.ci_jugador in pendientes %}
+  {% if partido.numero_fecha >= s.numero_fecha_inicio
+        and partido.numero_fecha <= s.numero_fecha_inicio + s.cantidad_fechas - 1 %}
+    <div class="nota" style="border-left-color:#a01818;background:#fdeaea">
+      <b>{{ s.jugador }}</b> está suspendido en esta fecha · motivo <b>{{ s.motivo }}</b> ·
+      fechas {{ s.numero_fecha_inicio }}
+      {% if s.cantidad_fechas > 1 %}
+        a {{ s.numero_fecha_inicio + s.cantidad_fechas - 1 }}
+      {% endif %}
+      · {{ 'generada por una tarjeta' if s.id_tarjeta else 'sanción disciplinaria manual' }}
+    </div>
+  {% endif %}
+{% else %}
+  <p class="sub">Ninguno de los jugadores de este partido está suspendido en la fecha {{ partido.numero_fecha }}.</p>
+{% endfor %}
+{% endblock %}

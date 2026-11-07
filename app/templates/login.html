@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block titulo %}Iniciar sesión · Torneo F5{% endblock %}
+
+{% block contenido %}
+<div class="panel acceso">
+  <h1>Iniciar sesión</h1>
+  <p class="sub">Gestión del Torneo Interfacultades de Fútbol 5</p>
+
+  {% if errores %}
+    <ul class="errores">
+      {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+
+  
+  <form method="post" class="formulario" id="form-login" novalidate>
+    <div class="campo">
+      <label for="correo">Email</label>
+      <input type="email" id="correo" name="correo" required maxlength="100"
+             placeholder="usuario@ucu.uy"
+             pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+             value="{{ request.form.get('correo', '') }}">
+    </div>
+    <div class="campo">
+      <label for="contrasena">Contraseña</label>
+      <input type="password" id="contrasena" name="contrasena" required
+             minlength="4" maxlength="255" placeholder="••••••••">
+    </div>
+    <button type="submit">Entrar</button>
+  </form>
+
+  <div class="credenciales">
+    <b>Usuarios de prueba</b><br>
+    Administrador: <code>admin@ucu.uy</code> · <code>Admin2026</code><br>
+    Planillero: <code>planillero@ucu.uy</code> · <code>Planillero2026</code>
+  </div>
+</div>
+
+<script>
+  // Validación frontend, avisa antes de mandar el formulario al servidor
+  document.getElementById('form-login').addEventListener('submit', function (ev) {
+    var correo = document.getElementById('correo');
+    var clave = document.getElementById('contrasena');
+    var malo = null;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo.value.trim())) malo = correo;
+    else if (clave.value.length < 4) malo = clave;
+    if (malo) {
+      ev.preventDefault();
+      malo.focus();
+      malo.setCustomValidity('Revise este campo');
+      malo.reportValidity();
+      malo.setCustomValidity('');
+    }
+  });
+</script>
+{% endblock %}

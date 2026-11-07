@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Nuevo equipo · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Nuevo equipo</h1>
+<p class="sub">Cada equipo representa a una facultad y juega en una sola edición.</p>
+
+{% if errores %}
+<ul class="errores">
+  {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<form method="post" action="{{ url_for('equipo_crear') }}" class="formulario" novalidate>
+  <div class="campo">
+    <label for="nombre">Nombre *</label>
+    <input type="text" id="nombre" name="nombre" required minlength="2" maxlength="60"
+           placeholder="Ingeniería FC"
+           value="{{ equipo.nombre if equipo and equipo.nombre else '' }}">
+  </div>
+  <div class="campo">
+    <label for="id_torneo">Edición del torneo *</label>
+    <select id="id_torneo" name="id_torneo" required>
+      <option value="">Elegir…</option>
+      {% for t in torneos %}
+      <option value="{{ t.id_torneo }}"
+        {% if equipo and equipo.id_torneo == t.id_torneo|string %}selected{% endif %}>
+        {{ t.nombre }} · {{ t.estado }}</option>
+      {% endfor %}
+    </select>
+    <small>Solo se puede cargar el plantel en edición en inscripción.</small>
+  </div>
+  <div class="campo">
+    <label for="id_facultad">Facultad *</label>
+    <select id="id_facultad" name="id_facultad" required>
+      <option value="">Elegir…</option>
+      {% for f in facultades %}
+      <option value="{{ f.id_facultad }}"
+        {% if equipo and equipo.id_facultad == f.id_facultad|string %}selected{% endif %}>
+        {{ f.nombre }}</option>
+      {% endfor %}
+    </select>
+    <small>Todos los jugadores del plantel tienen que ser de esta facultad.</small>
+  </div>
+
+  <div class="acciones">
+    <button type="submit">Crear equipo</button>
+    <a class="btn secundario" href="{{ url_for('equipos') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

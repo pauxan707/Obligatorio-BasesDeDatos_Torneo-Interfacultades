@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Nuevo complejo · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Nuevo complejo deportivo</h1>
+
+{% if errores %}
+<ul class="errores">
+  {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<form method="post" action="{{ url_for('complejo_crear') }}" class="formulario" novalidate>
+  <div class="campo">
+    <label for="nombre">Nombre *</label>
+    <input type="text" id="nombre" name="nombre" required minlength="2" maxlength="100"
+           placeholder="Complejo Central"
+           value="{{ complejo.nombre if complejo and complejo.nombre else '' }}">
+  </div>
+  <div class="campo">
+    <label for="direccion">Dirección *</label>
+    <input type="text" id="direccion" name="direccion" required minlength="2" maxlength="150"
+           placeholder="Av. España 1234"
+           value="{{ complejo.direccion if complejo and complejo.direccion else '' }}">
+  </div>
+  <div class="campo">
+    <label for="departamento">Departamento *</label>
+    <input type="text" id="departamento" name="departamento" required
+           minlength="2" maxlength="50" placeholder="Montevideo"
+           value="{{ complejo.departamento if complejo and complejo.departamento else '' }}">
+  </div>
+  <div class="acciones">
+    <button type="submit">Crear complejo</button>
+    <a class="btn secundario" href="{{ url_for('complejos') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

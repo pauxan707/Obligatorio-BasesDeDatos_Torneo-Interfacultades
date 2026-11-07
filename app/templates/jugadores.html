@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block titulo %}Jugadores · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Jugadores</h1>
+<p class="sub">{{ filas|length }} jugador(es) registrados</p>
+
+<form method="get" class="filtros">
+  <div>
+    <label for="q">Buscar</label>
+    <input type="search" id="q" name="q" value="{{ q }}" placeholder="cédula, nombre o apellido">
+  </div>
+  <div>
+    <label for="facultad">Facultad</label>
+    <select id="facultad" name="facultad">
+      <option value="">Todas</option>
+      {% for f in facultades %}
+      <option value="{{ f.id_facultad }}" {% if facultad == f.id_facultad|string %}selected{% endif %}>{{ f.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">Filtrar</button>
+  <a class="btn secundario" href="{{ url_for('jugadores') }}">Limpiar</a>
+  {% if es_admin %}
+  <a class="btn" href="{{ url_for('jugador_nuevo') }}">+ Nuevo jugador</a>
+  {% endif %}
+</form>
+
+{% if filas %}
+<table>
+  <thead>
+    <tr>
+      <th>Cédula</th><th>Nombre</th><th>Apellido</th><th>Email</th>
+      <th>Nacimiento</th><th>Tipo</th><th>Facultad</th><th class="num">Ediciones</th>
+      {% if es_admin %}<th></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for j in filas %}
+    <tr>
+      <td>{{ j.ci }}</td>
+      <td>{{ j.nombre }}</td>
+      <td>{{ j.apellido }}</td>
+      <td>{{ j.email }}</td>
+      <td>{{ j.fecha_nacimiento }}</td>
+      <td>{{ j.tipo }}</td>
+      <td>{{ j.facultad }}</td>
+      <td class="num">{{ j.ediciones }}</td>
+      {% if es_admin %}
+      <td class="fila-inline">
+        <a class="btn secundario chico" href="{{ url_for('jugador_editar', ci=j.ci) }}">Editar</a>
+        <form method="post" action="{{ url_for('jugador_borrar', ci=j.ci) }}"
+              onsubmit="return confirm('¿Eliminar a {{ j.nombre }} {{ j.apellido }}?')">
+          <button type="submit" class="btn peligro chico">Borrar</button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">No hay jugadores con esos filtros.</div>
+{% endif %}
+{% endblock %}

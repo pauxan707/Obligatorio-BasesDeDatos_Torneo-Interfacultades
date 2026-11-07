@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Torneo Interfacultades F5{% endblock %}</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f8; color: #1d2733; line-height: 1.5; font-size: 15px;
+  }
+  .barra { background: #12305b; color: #fff; padding: 0 20px; display: flex;
+           align-items: center; gap: 20px; flex-wrap: wrap; }
+  .marca { font-weight: 700; font-size: 17px; padding: 14px 0; white-space: nowrap; }
+  .marca span { color: #6fcf97; }
+  .barra nav { display: flex; gap: 2px; flex-wrap: wrap; }
+  .barra nav a { color: #cdd8ea; text-decoration: none; padding: 9px 10px;
+                 border-radius: 6px; font-size: 14px; }
+  .barra nav a:hover, .barra nav a.activo { background: #1c4380; color: #fff; }
+  .sesion { margin-left: auto; display: flex; align-items: center; gap: 12px;
+            font-size: 13px; color: #b9c6dc; white-space: nowrap; }
+  .sesion .salir { color: #ffb3b3; text-decoration: none; }
+  .contenedor { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 26px 0 10px; color: #24334a; }
+  h3 { font-size: 14px; margin: 18px 0 8px; color: #3b4a61; }
+  .sub { color: #66748a; font-size: 14px; margin: 0 0 20px; }
+  .aviso { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+  .aviso.message { background: #e4f6ea; color: #17603a; border: 1px solid #b7e4c7; }
+  .aviso.error   { background: #fdeaea; color: #8c1c1c; border: 1px solid #f3b7b7; }
+  .errores { background: #fdeaea; border: 1px solid #f3b7b7; color: #8c1c1c;
+             padding: 10px 10px 10px 30px; border-radius: 8px; font-size: 14px;
+             margin: 0 0 16px; }
+  .acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+              margin-bottom: 16px; }
+  .panel { background: #fff; border-radius: 10px; padding: 18px 20px;
+           box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px; }
+  .panel + .panel { margin-top: 0; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px;
+          overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); font-size: 14px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid #edf1f5;
+           vertical-align: top; }
+  th { background: #f0f3f7; font-weight: 600; font-size: 13px; color: #3b4a61; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #f8fafc; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  form { margin: 0; }
+  .formulario { display: grid; gap: 14px; max-width: 640px; }
+  .formulario.dos { grid-template-columns: 1fr 1fr; max-width: 780px; }
+  @media (max-width: 640px) { .formulario.dos { grid-template-columns: 1fr; } }
+  label { display: block; font-size: 13px; font-weight: 600; color: #3b4a61;
+          margin-bottom: 4px; }
+  input, select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #ccd5e0; border-radius: 7px;
+    font: inherit; font-size: 14px; background: #fff; color: #1d2733;
+  }
+  input:focus, select:focus { outline: 2px solid #2f6fdb; outline-offset: -1px;
+                              border-color: #2f6fdb; }
+  input:invalid:not(:placeholder-shown) { border-color: #e06666; }
+  .campo small { display: block; font-weight: 400; color: #7b8798; margin-top: 3px; }
+  button, .btn {
+    display: inline-block; padding: 8px 15px; border: 1px solid transparent;
+    border-radius: 7px; background: #2f6fdb; color: #fff; font: inherit;
+    font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none;
+    text-align: center;
+  }
+  button:hover, .btn:hover { background: #2559b5; }
+  .btn.secundario { background: #fff; color: #3b4a61; border-color: #ccd5e0; }
+  .btn.secundario:hover { background: #f0f3f7; }
+  .btn.peligro { background: #fff; color: #a01818; border-color: #f0b9b9; }
+  .btn.peligro:hover { background: #fdeaea; }
+  .btn.chico { padding: 4px 9px; font-size: 12.5px; }
+  .filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+             margin-bottom: 16px; }
+  .filtros label { margin-bottom: 3px; }
+  .filtros input, .filtros select { width: auto; min-width: 150px; }
+  .fila-inline input, .fila-inline select { width: auto; min-width: 140px;
+                                            padding: 7px 9px; }
+  .fila-inline button { white-space: nowrap; }
+  .fila-inline .btn { white-space: nowrap; }
+  details.panel > summary { cursor: pointer; font-weight: 600; color: #24334a; }
+  .etiqueta { display: inline-block; padding: 1px 8px; border-radius: 99px;
+              font-size: 12px; font-weight: 600; }
+  .etiqueta.jugado      { background: #e4f6ea; color: #17603a; }
+  .etiqueta.programado  { background: #e6eefc; color: #1d4289; }
+  .etiqueta.postergado  { background: #fff3dc; color: #8a5a00; }
+  .etiqueta.cancelado   { background: #f0f0f0; color: #5c5c5c; }
+  .etiqueta.amarilla    { background: #fdf3cf; color: #7a5c00; }
+  .etiqueta.roja        { background: #fde4e4; color: #8c1c1c; }
+  .etiqueta.rol         { background: #ede7fb; color: #4a2e91; }
+  .vacia { padding: 22px; text-align: center; color: #7b8798; background: #fff;
+           border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+              gap: 12px; margin-bottom: 22px; }
+  .dato { background: #fff; border-radius: 10px; padding: 14px 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .dato b { display: block; font-size: 26px; color: #12305b; line-height: 1.2; }
+  .dato span { font-size: 12.5px; color: #66748a; }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+             gap: 16px; }
+  .fila-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .check { display: flex; align-items: center; gap: 9px; padding: 7px 10px;
+           border: 1px solid #e3e9f0; border-radius: 7px; margin-bottom: 6px;
+           font-size: 14px; background: #fff; }
+  .check input { width: auto; }
+  .check .ficha { margin-left: auto; font-size: 12px; color: #7b8798; }
+  .check.suspendido { background: #fdf6f6; border-color: #f3d6d6; }
+  .check.suspendido .ficha { color: #a01818; font-weight: 600; }
+  .check.jugado { background: #f7fbf8; border-color: #d9ece1; }
+  .nota { font-size: 13.5px; color: #66748a; background: #f0f3f7;
+          border-left: 3px solid #2f6fdb; padding: 9px 13px; border-radius: 0 7px 7px 0;
+          margin: 14px 0; }
+  .acceso { max-width: 420px; margin: 60px auto; }
+  .acceso h1 { margin-bottom: 16px; }
+  .credenciales { font-size: 13px; color: #66748a; background: #f0f3f7;
+                  padding: 11px 13px; border-radius: 7px; margin-top: 18px; }
+  .credenciales code { background: #fff; padding: 1px 5px; border-radius: 4px;
+                       font-size: 12.5px; }
+  .centrado { text-align: center; padding: 40px 20px; }
+  .pie { margin-top: 34px; font-size: 13px; color: #7b8798; text-align: center; }
+</style>
+</head>
+<body>
+
+{% if rol %}
+<header class="barra">
+  <div class="marca">⚽ Torneo Interfacultades <span>F5</span></div>
+  <nav>
+    <a href="{{ url_for('index') }}">Inicio</a>
+    <a href="{{ url_for('jugadores') }}">Jugadores</a>
+    <a href="{{ url_for('equipos') }}">Equipos</a>
+    <a href="{{ url_for('complejos') }}">Complejos y canchas</a>
+    <a href="{{ url_for('partidos') }}">Partidos</a>
+    <a href="{{ url_for('sanciones') }}">Sanciones</a>
+    <a href="{{ url_for('reportes') }}">Reportes</a>
+  </nav>
+  <div class="sesion">
+    <span class="etiqueta rol">{{ rol }}</span>
+    <span>{{ correo }}</span>
+    <a class="salir" href="{{ url_for('logout') }}">Salir</a>
+  </div>
+</header>
+{% endif %}
+
+<main class="contenedor">
+  {% with avisos = get_flashed_messages(with_categories=true) %}
+    {% for categoria, texto in avisos %}
+      <div class="aviso {{ categoria }}">{{ texto }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block contenido %}{% endblock %}
+  {% if rol %}<div class="pie">Torneo Interfacultades de Fútbol 5 · UCU · Base de Datos 1</div>{% endif %}
+</main>
+
+</body>
+</html>

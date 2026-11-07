@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block titulo %}Complejos y canchas · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Complejos y canchas</h1>
+<p class="sub">{{ filas|length }} complejo(s) · {{ canchas|length }} cancha(s)</p>
+
+{% if es_admin %}
+<div class="acciones">
+  <a class="btn" href="{{ url_for('complejo_nuevo') }}">+ Nuevo complejo</a>
+</div>
+{% endif %}
+
+<h2>Complejos</h2>
+{% if filas %}
+<div class="rejilla">
+  {% for c in filas %}
+  <div class="panel">
+    {% if es_admin %}
+    <form method="post" action="{{ url_for('complejo_guardar', id_complejo=c.id_complejo) }}"
+          class="formulario" novalidate>
+      <div class="campo">
+        <label for="nombre-{{ c.id_complejo }}">Nombre</label>
+        <input type="text" id="nombre-{{ c.id_complejo }}" name="nombre" required
+               minlength="2" maxlength="100" value="{{ c.nombre }}">
+      </div>
+      <div class="campo">
+        <label for="direccion-{{ c.id_complejo }}">Dirección</label>
+        <input type="text" id="direccion-{{ c.id_complejo }}" name="direccion" required
+               minlength="2" maxlength="150" value="{{ c.direccion }}">
+      </div>
+      <div class="campo">
+        <label for="departamento-{{ c.id_complejo }}">Departamento</label>
+        <input type="text" id="departamento-{{ c.id_complejo }}" name="departamento" required
+               minlength="2" maxlength="50" value="{{ c.departamento }}">
+      </div>
+      <p class="sub" style="margin:0">{{ c.canchas }} cancha(s) vinculada(s)</p>
+      <div class="acciones" style="margin-bottom:0">
+        <button type="submit">Guardar</button>
+      </div>
+    </form>
+    <form method="post" action="{{ url_for('complejo_borrar', id_complejo=c.id_complejo) }}"
+          style="margin-top:10px"
+          onsubmit="return confirm('¿Eliminar el complejo {{ c.nombre }} y todas sus canchas?')">
+      <button type="submit" class="btn peligro">Eliminar complejo</button>
+    </form>
+    {% else %}
+    <h2 style="margin-top:0">{{ c.nombre }}</h2>
+    <p class="sub" style="margin-bottom:6px">
+      {{ c.direccion }}<br>
+      Departamento de {{ c.departamento }}<br>
+      {{ c.canchas }} cancha(s)
+    </p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="vacia">Todavía no hay complejos cargados.</div>
+{% endif %}
+
+<h2>Canchas</h2>
+{% if canchas %}
+<table>
+  <thead>
+    <tr>
+      <th>Cancha</th><th>Complejo</th><th>Superficie</th><th>Techada</th>
+      {% if es_admin %}<th></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for k in canchas %}
+    <tr>
+      <td><b>{{ k.nombre_cancha }}</b></td>
+      <td>{{ k.complejo }}</td>
+      <td>{{ k.superficie }}</td>
+      <td>{{ 'Sí' if k.techada else 'No' }}</td>
+      {% if es_admin %}
+      <td>
+        <form method="post"
+              action="{{ url_for('cancha_borrar', id_complejo=k.id_complejo, nombre=k.nombre_cancha) }}"
+              onsubmit="return confirm('¿Eliminar la cancha {{ k.nombre_cancha }}?')">
+          <button type="submit" class="btn peligro chico">Borrar</button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">Todavía no hay canchas cargadas.</div>
+{% endif %}
+
+{% if es_admin %}
+<h2>Agregar cancha</h2>
+<form method="post" id="form-cancha" class="formulario dos" novalidate>
+  <div class="campo">
+    <label for="id_complejo">Complejo *</label>
+    <select id="id_complejo" name="id_complejo" required>
+      <option value="">Elegir…</option>
+      {% for c in filas %}
+      <option value="{{ c.id_complejo }}">{{ c.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="campo">
+    <label for="nombre_cancha">Nombre de la cancha *</label>
+    <input type="text" id="nombre_cancha" name="nombre_cancha" required
+           maxlength="50" placeholder="Cancha 5">
+    <small>El nombre es clave junto con el complejo.</small>
+  </div>
+  <div class="campo">
+    <label for="superficie">Superficie *</label>
+    <select id="superficie" name="superficie" required>
+      <option value="sintetico">sintetico</option>
+      <option value="parquet">parquet</option>
+    </select>
+  </div>
+  <div class="campo">
+    <label for="techada">Techada</label>
+    <select id="techada" name="techada">
+      <option value="">No</option>
+      <option value="1">Sí</option>
+    </select>
+  </div>
+  <div class="acciones" style="grid-column:1/-1">
+    <button type="submit" {% if not filas %}disabled{% endif %}>Agregar cancha</button>
+  </div>
+</form>
+<script>
+  //Al enviar arma la URL del formulario con el complejo que se eligió
+  (function () {
+    var form = document.getElementById('form-cancha');
+    if (!form) return;
+    form.addEventListener('submit', function (ev) {
+      var id = document.getElementById('id_complejo').value;
+      if (!id) {
+        ev.preventDefault();
+        document.getElementById('id_complejo').focus();
+        return;
+      }
+      ev.preventDefault();
+      form.action = '/complejos/' + id + '/canchas';
+      HTMLFormElement.prototype.submit.call(form);
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

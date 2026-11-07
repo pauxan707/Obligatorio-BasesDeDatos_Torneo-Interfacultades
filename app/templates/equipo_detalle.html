@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block titulo %}{{ equipo.nombre }} · Torneo F5{% endblock %}
+
+{% block contenido %}
+<div class="acciones">
+  <a class="btn secundario" href="{{ url_for('equipos', torneo=equipo.id_torneo) }}">← Equipos</a>
+</div>
+
+<h1>{{ equipo.nombre }}</h1>
+<p class="sub">
+  {{ equipo.facultad }} · {{ equipo.edicion }}
+  · <span class="etiqueta {{ equipo.estado }}">{{ equipo.estado }}</span>
+  · Capitán: <b>{{ equipo.capitan if equipo.capitan else 'sin asignar' }}</b>
+</p>
+
+{% if not inscripcion %}
+<div class="nota">
+  Esta edición está en <b>{{ equipo.estado }}</b>: la letra dice que los planteles
+  solo se modifican mientras el torneo está en <b>inscripción</b>.
+  Las ediciones que sí lo permiten están en
+  <a href="{{ url_for('equipos') }}">Equipos</a>.
+</div>
+{% endif %}
+
+<h2>Plantel <small style="color:#7b8798">({{ plantel|length }} de 10 · mínimo 5)</small></h2>
+
+{% if plantel %}
+<table>
+  <thead>
+    <tr>
+      <th class="num">#</th><th>Jugador</th><th>Cédula</th><th>Tipo</th>
+      <th>Facultad</th><th>Email</th>{% if es_admin and inscripcion %}<th></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in plantel %}
+    <tr>
+      <td class="num">{{ p.numero_camiseta }}</td>
+      <td>
+        <b>{{ p.nombre }} {{ p.apellido }}</b>
+        {% if equipo.ci_capitan == p.ci_jugador %}
+          <span class="etiqueta rol">capitán</span>
+        {% endif %}
+      </td>
+      <td>{{ p.ci_jugador }}</td>
+      <td>{{ p.tipo }}</td>
+      <td>{{ p.facultad }}</td>
+      <td>{{ p.email }}</td>
+      {% if es_admin and inscripcion %}
+      <td class="fila-inline">
+        {% if equipo.ci_capitan != p.ci_jugador %}
+        <form method="post" action="{{ url_for('capitan_asignar', id_equipo=equipo.id_equipo) }}"
+              onsubmit="return confirm('¿Designar capitán a {{ p.nombre }} {{ p.apellido }}?')">
+          <input type="hidden" name="ci_capitan" value="{{ p.ci_jugador }}">
+          <button type="submit" class="btn secundario chico">Hacer capitán</button>
+        </form>
+        {% endif %}
+        <form method="post"
+              action="{{ url_for('plantel_quitar', id_equipo=equipo.id_equipo, ci=p.ci_jugador) }}"
+              onsubmit="return confirm('¿Quitar a {{ p.nombre }} {{ p.apellido }} del plantel?')">
+          <button type="submit" class="btn peligro chico">Quitar</button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">Este plantel todavía no tiene jugadores.</div>
+{% endif %}
+
+{% if es_admin and inscripcion %}
+<h2>Agregar jugador al plantel</h2>
+<form method="post" action="{{ url_for('plantel_agregar', id_equipo=equipo.id_equipo) }}"
+      class="formulario dos" novalidate>
+  <div class="campo">
+    <label for="ci_jugador">Jugador *</label>
+    <select id="ci_jugador" name="ci_jugador" required>
+      <option value="">Elegir…</option>
+      {% for d in disponibles %}
+      <option value="{{ d.ci }}">{{ d.etiqueta }}</option>
+      {% endfor %}
+    </select>
+    <small>
+      {% if disponibles %}Solo jugadores de {{ equipo.facultad }} que no estén en
+      otra edición.{% else %}No quedan jugadores disponibles de esta facultad.{% endif %}
+    </small>
+  </div>
+  <div class="campo">
+    <label for="numero_camiseta">Número de camiseta *</label>
+    <input type="number" id="numero_camiseta" name="numero_camiseta"
+           required min="1" max="99" placeholder="7">
+    <small>Único dentro de este plantel.</small>
+  </div>
+  <div class="acciones" style="grid-column:1/-1">
+    <button type="submit" {% if not disponibles %}disabled{% endif %}>Agregar</button>
+  </div>
+</form>
+
+<h2>Editar equipo</h2>
+<form method="post" action="{{ url_for('equipo_guardar', id_equipo=equipo.id_equipo) }}"
+      class="formulario dos">
+  <div class="campo">
+    <label for="nombre">Nombre</label>
+    <input type="text" id="nombre" name="nombre" required minlength="2" maxlength="60"
+           value="{{ equipo.nombre }}">
+  </div>
+  <div class="campo">
+    <label for="id_facultad">Facultad</label>
+    <select id="id_facultad" name="id_facultad" required>
+      {% for f in facultades %}
+      <option value="{{ f.id_facultad }}" {% if equipo.id_facultad == f.id_facultad %}selected{% endif %}>
+        {{ f.nombre }}</option>
+      {% endfor %}
+    </select>
+    <input type="hidden" name="id_torneo" value="{{ equipo.id_torneo }}">
+  </div>
+  <div class="acciones" style="grid-column:1/-1">
+    <button type="submit">Guardar cambios</button>
+    <button form="form-borrar" type="submit" class="btn peligro">Eliminar equipo</button>
+  </div>
+</form>
+
+<form id="form-borrar" method="post" action="{{ url_for('equipo_borrar', id_equipo=equipo.id_equipo) }}"
+      onsubmit="return confirm('¿Eliminar el equipo y todo su plantel?')"></form>
+{% endif %}
+{% endblock %}

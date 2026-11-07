@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block titulo %}Partidos · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Partidos</h1>
+<p class="sub">{{ filas|length }} partido(s)</p>
+
+<form method="get" class="filtros">
+  <div>
+    <label for="torneo">Edición</label>
+    <select id="torneo" name="torneo" onchange="this.form.submit()">
+      <option value="">Todas</option>
+      {% for t in torneos %}
+      <option value="{{ t.id_torneo }}" {% if torneo == t.id_torneo|string %}selected{% endif %}>
+        {{ t.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="fecha">Fecha</label>
+    <input type="number" id="fecha" name="fecha" min="1" max="99" value="{{ fecha }}" placeholder="todas">
+  </div>
+  <button type="submit">Filtrar</button>
+  <a class="btn secundario" href="{{ url_for('partidos') }}">Limpiar</a>
+  {% if es_admin %}
+  <a class="btn" href="{{ url_for('partido_nuevo', torneo=torneo) }}">+ Programar partido</a>
+  {% endif %}
+</form>
+
+{% if filas %}
+<table>
+  <thead>
+    <tr>
+      <th class="num">Fecha</th><th>Día</th><th>Turno</th>
+      <th>Partido</th><th>Cancha</th><th>Complejo</th><th>Estado</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in filas %}
+    <tr>
+      <td class="num">{{ p.numero_fecha }}</td>
+      <td>{{ p.dia }}</td>
+      <td>{{ p.turno }}</td>
+      <td><b>{{ p.local }}</b> vs <b>{{ p.visitante }}</b></td>
+      <td>{{ p.nombre_cancha }}</td>
+      <td>{{ p.complejo }}</td>
+      <td><span class="etiqueta {{ p.estado }}">{{ p.estado }}</span></td>
+      <td><a class="btn secundario chico" href="{{ url_for('partido_detalle', id_partido=p.id_partido) }}">Abrir</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="vacia">No hay partidos con esos filtros.</div>
+{% endif %}
+{% endblock %}

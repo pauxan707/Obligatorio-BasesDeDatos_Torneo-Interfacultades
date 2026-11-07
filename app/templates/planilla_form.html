@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block titulo %}Planilla · {{ partido.local }} vs {{ partido.visitante }}{% endblock %}
+
+{% block contenido %}
+<div class="acciones">
+  <a class="btn secundario" href="{{ url_for('partido_detalle', id_partido=partido.id_partido) }}">← Volver al partido</a>
+</div>
+
+<h1>Planilla de juego</h1>
+<p class="sub">
+  {{ partido.local }} vs {{ partido.visitante }} ·
+  {{ partido.edicion }} · Fecha <b>{{ partido.numero_fecha }}</b> ·
+  {{ partido.dia }} · {{ partido.turno }} ·
+  <span class="etiqueta {{ partido.estado }}">{{ partido.estado }}</span>
+</p>
+
+{% if partido.estado != 'jugado' %}
+<div class="nota" style="border-left-color:#8a5a00;background:#fff3dc">
+  Este partido todavía no está en estado <b>jugado</b>. La planilla se registra
+  una vez disputado. Volvé al partido y cambialo de estado desde ahí.
+</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('planilla_guardar', id_partido=partido.id_partido) }}">
+  <h2>Local — {{ partido.local }}</h2>
+  <div class="rejilla">
+    {% for p in plantel if p.id_equipo == partido.id_equipo_local %}
+    <label class="check {{ 'suspendido' if p.ci_jugador in suspendidos else ('jugado' if p.ci_jugador in en_linea else '') }}">
+      <input type="checkbox" name="jugador" value="{{ p.ci_jugador }}"
+             {% if p.ci_jugador in en_linea %}checked{% endif %}
+             {% if p.ci_jugador in suspendidos %}disabled{% endif %}>
+      <span>
+        <b>#{{ p.numero_camiseta }}</b> {{ p.jugador }}
+        <span style="color:#7b8798;font-size:12px">({{ p.tipo }})</span>
+      </span>
+      <span class="ficha">
+        {% if p.ci_jugador in suspendidos %}
+          suspendido en la fecha {{ partido.numero_fecha }}
+        {% elif p.ci_jugador in con_datos %}
+          con goles/tarjetas en este partido
+        {% else %}
+          en la plantilla
+        {% endif %}
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+
+  <h2>Visitante — {{ partido.visitante }}</h2>
+  <div class="rejilla">
+    {% for p in plantel if p.id_equipo == partido.id_equipo_visitante %}
+    <label class="check {{ 'suspendido' if p.ci_jugador in suspendidos else ('jugado' if p.ci_jugador in en_linea else '') }}">
+      <input type="checkbox" name="jugador" value="{{ p.ci_jugador }}"
+             {% if p.ci_jugador in en_linea %}checked{% endif %}
+             {% if p.ci_jugador in suspendidos %}disabled{% endif %}>
+      <span>
+        <b>#{{ p.numero_camiseta }}</b> {{ p.jugador }}
+        <span style="color:#7b8798;font-size:12px">({{ p.tipo }})</span>
+      </span>
+      <span class="ficha">
+        {% if p.ci_jugador in suspendidos %}
+          suspendido en la fecha {{ partido.numero_fecha }}
+        {% elif p.ci_jugador in con_datos %}
+          con goles/tarjetas en este partido
+        {% else %}
+          en la plantilla
+        {% endif %}
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+
+  <div class="nota">
+    <b>Reglas que controla el back-end:</b>
+    <ul style="margin:6px 0 0 18px;padding:0">
+      <li>Un jugador suspendido en esta fecha no puede sumarse a la planilla.</li>
+      <li>La planilla requiere mínimo 5 jugadores y máximo 10 por equipo.</li>
+      <li>No se puede quitar a un jugador que ya le convirtió goles o recibió tarjetas.</li>
+      <li>Quitar jugadores es una corrección: corre dentro de las 48 horas posteriores al partido.</li>
+    </ul>
+  </div>
+
+  <div class="acciones">
+    <button type="submit" {% if partido.estado != 'jugado' %}disabled{% endif %}>Guardar planilla</button>
+    <a class="btn secundario" href="{{ url_for('partido_detalle', id_partido=partido.id_partido) }}">Cancelar</a>
+  </div>
+</form>
+
+<script>
+  // Validación frontend, avisa antes de mandar si hay menos de 5 por equipo
+  (function () {
+    var form = document.querySelector('form[action$="/planilla"]');
+    if (!form) return;
+    form.addEventListener('submit', function (ev) {
+      // El primer bloque .rejilla es el local, el segundo el visitante
+      var bloques = form.querySelectorAll('.rejilla');
+      if (bloques.length !== 2) return;
+      var local = bloques[0].querySelectorAll('input[name="jugador"]:checked').length;
+      var visitante = bloques[1].querySelectorAll('input[name="jugador"]:checked').length;
+      if (local > 0 && local < 5) {
+        ev.preventDefault();
+        alert('El equipo local necesita al menos 5 jugadores en la planilla (tiene ' + local + ').');
+        return;
+      }
+      if (visitante > 0 && visitante < 5) {
+        ev.preventDefault();
+        alert('El equipo visitante necesita al menos 5 jugadores en la planilla (tiene ' + visitante + ').');
+      }
+    });
+  })();
+</script>
+{% endblock %}

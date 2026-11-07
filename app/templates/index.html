@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio · Torneo F5{% endblock %}
+
+{% block contenido %}
+<h1>Panel general</h1>
+<p class="sub">
+  {% if torneos %}Torneos cargados: {{ torneos|length }}{% endif %}
+  · Conectado como <b>{{ rol }}</b>
+</p>
+
+<div class="tarjetas">
+  <div class="dato"><b>{{ totales.equipos }}</b><span>Equipos</span></div>
+  <div class="dato"><b>{{ totales.jugadores }}</b><span>Jugadores</span></div>
+  <div class="dato"><b>{{ totales.canchas }}</b><span>Canchas</span></div>
+  <div class="dato"><b>{{ totales.partidos }}</b><span>Partidos</span></div>
+  <div class="dato"><b>{{ totales.jugados }}</b><span>Jugados</span></div>
+  <div class="dato"><b>{{ totales.sanciones }}</b><span>Sanciones</span></div>
+</div>
+
+<div class="rejilla">
+  <div class="panel">
+    <h2 style="margin-top:0">ABM</h2>
+    <p class="sub">Alta, baja y modificación de cada entidad.</p>
+    <div class="acciones">
+      <a class="btn" href="{{ url_for('jugadores') }}">Jugadores</a>
+      <a class="btn" href="{{ url_for('equipos') }}">Equipos y planteles</a>
+      <a class="btn" href="{{ url_for('complejos') }}">Complejos y canchas</a>
+      <a class="btn" href="{{ url_for('partidos') }}">Partidos</a>
+      {% if es_admin %}
+      <a class="btn" href="{{ url_for('sancion_nueva') }}">Cargar sanción</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 style="margin-top:0">Registro de partido</h2>
+    <p class="sub">
+      {% if es_admin %}
+        También podés cargar la planilla, los goles y las tarjetas desde cada partido.
+      {% else %}
+        Tu rol te deja registrar planillas, goles y tarjetas de los partidos.
+      {% endif %}
+    </p>
+    <div class="acciones">
+      <a class="btn" href="{{ url_for('partidos') }}">Ir a los partidos</a>
+      <a class="btn secundario" href="{{ url_for('reportes') }}">Ver reportes</a>
+    </div>
+  </div>
+</div>
+
+<h2>Reportes</h2>
+<p class="sub">9 del enunciado + 3 propuestos por el equipo, todos sobre vistas de la base.</p>
+<div class="acciones">
+  <a class="btn secundario" href="{{ url_for('reporte', nombre='posiciones') }}">Posiciones</a>
+  <a class="btn secundario" href="{{ url_for('reporte', nombre='goleadores') }}">Goleadores</a>
+  <a class="btn secundario" href="{{ url_for('reporte', nombre='fair-play') }}">Fair play</a>
+  <a class="btn secundario" href="{{ url_for('reportes') }}">Ver los 12</a>
+</div>
+{% endblock %}
