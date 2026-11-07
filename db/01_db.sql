@@ -157,10 +157,10 @@ INSERT INTO turno (id_turno, hora_inicio, hora_fin) VALUES
 
 INSERT INTO login (correo, contrasena, rol) VALUES
 ('admin@ucu.uy',
- '$2b$12$swSMNIOTAHxvDfcU9/Kbc.Wy4vjxBMXWAPRKOHpZYqhyMB2FO96K6',
+ '$2b$12$F0oBajWP2PbmAdt2bD4zluHE.Ppd3Zb9drAanztSRHFOzDG7k3A.a',
  'administrador'),
 ('planillero@ucu.uy',
- '$2b$12$gNGn6ncWVSxpnBeiyVNjZeWuBfs/CJsFgk2asJpzzEGPfnyaKdGt2',
+ '$2b$12$aZneHELlpWKTpiB4c.8m9e3EX33O26b.WHRPR5M6wGTeGe9X7C8Re',
  'planillero');
 
 

@@ -183,3 +183,18 @@ INSERT INTO sancion_jugador (id_sancion, ci_jugador, id_torneo, motivo, numero_f
 (2, '10000037', 1, 'roja',                   4, 1, 16),
 (3, '10000028', 1, 'disciplinaria',          4, 2, NULL),
 (4, '10000004', 1, 'disciplinaria',          5, 1, NULL);
+
+-- Segunda edición, todavía en inscripción
+-- Sirve para probar el CRUD de planteles, que solo se puede usar en esta etapa
+INSERT INTO torneo (id_torneo, nombre, anio, semestre, fecha_inicio, fecha_fin, estado) VALUES
+(2, 'Torneo Interfacultades de Fútbol 5', 2027, 1, '2027-03-01', '2027-06-30', 'inscripcion');
+
+INSERT INTO equipo (id_equipo, nombre, id_torneo, id_facultad, ci_capitan) VALUES
+(7, 'Derecho FC',     2, 1, '10000001'),
+(8, 'Ingeniería FC',  2, 2, '10000009'),
+(9, 'Medicina FC',    2, 3, '10000017');
+
+INSERT INTO equipo_jugador_torneo (id_equipo, ci_jugador, id_torneo, numero_camiseta) VALUES
+(7, '10000001', 2, 1), (7, '10000002', 2, 2), (7, '10000003', 2, 3), (7, '10000004', 2, 4), (7, '10000005', 2, 5),
+(8, '10000009', 2, 1), (8, '10000010', 2, 2), (8, '10000011', 2, 3), (8, '10000012', 2, 4), (8, '10000013', 2, 5),
+(9, '10000017', 2, 1), (9, '10000018', 2, 2), (9, '10000019', 2, 3), (9, '10000020', 2, 4), (9, '10000021', 2, 5);
