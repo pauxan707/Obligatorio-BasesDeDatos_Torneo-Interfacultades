@@ -43,10 +43,10 @@ En la app de Docker se debe poder observar algo de esta manera
 | `admin_app` | Lectura y escritura sobre todo el torneo | `Admin` |
 | `planillero_app` | Solo registra planillas, goles y tarjetas (el resto es lectura) | `Planillero` |
 | `login_app` | Solo lee la tabla `login` | `Login` |
-| `root` | `Administra en consola` | `12345` |
+| `root` | Administra en consola | `12345` |
 
 ## Usuarios del sistema
-En la tabla login se encuentran los users de la app con bcrypt
+En la tabla login se encuentran los users de la app con su contraseña guardada como hash en bcrypt
 
 | Rol | Correo | Contraseña | Qué puede hacer |
 |---|---|---|---|
@@ -77,7 +77,7 @@ Los reportes solicitados se pueden encontrar en cada una de estas vistas, las ú
 | Jugadores con más tarjetas por facultad | `v_tarjetas_facultad` |
 | Ocupación de cada complejo por día (turnos y canchas usadas) | `v_ocupacion_complejo` |
 
-Hay una tabla extra (v_resultado_partido) que calcula el marcador en base a los goles, se usa en varias vistas como auxiliar de consultas.
+Hay una vista extra (v_resultado_partido) que calcula el marcador en base a los goles, se usa en varias vistas como auxiliar de consultas.
 
 
 
