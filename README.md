@@ -33,9 +33,6 @@ Esperas: `Running on http://0.0.0.0:5000` en la terminal
    - `http://localhost:5000` -- la app
    
 Si no anda se puede tratar de reiniciarla con `docker compose down -v` y después `docker compose up --build`
-En la app de Docker se debe poder observar algo de esta manera
-<img width="765" height="356" alt="image" src="https://github.com/user-attachments/assets/d5502103-8dfa-431f-a8b2-8d9bcbcb3556" />
-
 
 ## Usuarios MySQL
 | Usuario | Permisos | Contraseña |
